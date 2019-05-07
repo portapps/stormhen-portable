@@ -20,6 +20,7 @@ type config struct {
 	MultipleInstances bool   `yaml:"multiple_instances" mapstructure:"multiple_instances"`
 	DisableTelemetry  bool   `yaml:"disable_telemetry" mapstructure:"disable_telemetry"`
 	GnuPGAgentPath    string `yaml:"gnupg_agent_path" mapstructure:"gnupg_agent_path"`
+	Locale            string `yaml:"locale" mapstructure:"locale"`
 }
 
 var (
@@ -29,6 +30,7 @@ var (
 
 const (
 	embeddedGnupgAgentPath = `app\gnupg\bin\gpg.exe`
+	defaultLocale          = "en-US"
 )
 
 func init() {
@@ -38,6 +40,7 @@ func init() {
 	cfg = &config{
 		MultipleInstances: false,
 		DisableTelemetry:  false,
+		Locale:            defaultLocale,
 	}
 
 	// Init app
@@ -54,6 +57,12 @@ func main() {
 	app.Args = []string{
 		"--profile",
 		utl.CreateFolder(app.DataPath, "profile", "default"),
+	}
+
+	// Locale
+	locale, err := checkLocale()
+	if err != nil {
+		Log.Error().Err(err).Msg("Cannot set locale")
 	}
 
 	// GnuPG agent
@@ -96,15 +105,24 @@ pref("general.config.obscure_value", 0);`); err != nil {
 	mozillaCfgData := struct {
 		Telemetry      string
 		GnuPgAgentPath string
+		Locale         string
 	}{
 		strconv.FormatBool(!cfg.DisableTelemetry),
 		gnupgAgentPath,
+		locale,
 	}
 	mozillaCfgTpl := template.Must(template.New("mozillaCfg").Parse(`// Disable updater
 lockPref("app.update.enabled", false);
 lockPref("app.update.auto", false);
 lockPref("app.update.mode", 0);
 lockPref("app.update.service.enabled", false);
+
+// Set locale
+pref("intl.locale.requested", "{{ .Locale }}");
+
+// Extensions scopes
+lockPref("extensions.enabledScopes", 4);
+lockPref("extensions.autoDisableScopes", 3);
 
 // Disable check default client
 lockPref("mail.shell.checkDefaultClient", false);
@@ -177,4 +195,28 @@ pref("extensions.enigmail.agentPath", "{{ .GnuPgAgentPath }}");
 	}
 
 	app.Launch(os.Args[1:])
+}
+
+func checkLocale() (string, error) {
+	extSourceFile := fmt.Sprintf("%s.xpi", cfg.Locale)
+	extDestFile := fmt.Sprintf("langpack-%s@thunderbird.mozilla.org.xpi", cfg.Locale)
+	extsFolder := utl.CreateFolder(app.AppPath, "extensions")
+	localeXpi := utl.PathJoin(app.AppPath, "langs", extSourceFile)
+
+	// If default locale skip (already embedded)
+	if cfg.Locale == defaultLocale {
+		return cfg.Locale, nil
+	}
+
+	// Check .xpi file exists
+	if !utl.Exists(localeXpi) {
+		return defaultLocale, fmt.Errorf("XPI file does not exist in %s", localeXpi)
+	}
+
+	// Copy .xpi
+	if err := utl.CopyFile(localeXpi, utl.PathJoin(extsFolder, extDestFile)); err != nil {
+		return defaultLocale, err
+	}
+
+	return cfg.Locale, nil
 }

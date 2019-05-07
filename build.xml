@@ -35,13 +35,25 @@
 
     <echo message="Downloading GnuPG..."/>
     <property name="gnupg.file" location="${tmp.path}\gnupg-setup.exe"/>
-    <get dest="${gnupg.file}" src="${gnupg.url}" skipexisting="false"/>
+    <get dest="${gnupg.file}" src="${papp.gnupg.url}" skipexisting="false"/>
 
     <echo message="Extracting GnuPG..."/>
     <sevenzip-x src="${gnupg.file}" dest="${extract.path}\gnupg"/>
     <delete dir="${extract.path}\gnupg\$PLUGINSDIR"/>
     <delete file="${extract.path}\gnupg\gnupg-uninstall.exe.nsis"/>
     <assertfile file="${extract.path}\gnupg\bin\gpg.exe"/>
+
+    <echo message="Downloading additional languages..."/>
+    <property name="papp.languages.path" location="${extract.path}\langs"/>
+    <mkdir dir="${papp.languages.path}"/>
+    <for list="${papp.languages}" param="lang">
+      <sequential>
+        <get dest="${papp.languages.path}\@{lang}.xpi" src="https://ftp.mozilla.org/pub/thunderbird/releases/${app.version}/${atf.arch}/xpi/@{lang}.xpi" skipexisting="true"/>
+      </sequential>
+    </for>
+
+    <echo message="Downloading Lightning with all languages..."/>
+    <get dest="${extract.path}\distribution\extensions\${papp.lightning.id}.xpi" src="${papp.lightning.url}" skipexisting="false"/>
   </target>
 
 </project>
