@@ -1,6 +1,6 @@
 # Changelog
 
-## 60.6.1-2 (2019/05/07)
+## 60.6.1-2 (2019/05/08)
 
 * Add config param to change locale
 * Make Thunderbird multilingual
