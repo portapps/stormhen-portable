@@ -12,13 +12,15 @@
 
 ## Notice of Non-Affiliation and Disclaimer
 
-Portapps is not affiliated, associated, authorized, endorsed by, or in any way officially connected with Thunderbird, or any of its subsidiaries or its affiliates. The official Thunderbird website can be found at https://www.thunderbird.net/en-US/.
+Portapps is not affiliated, associated, authorized, endorsed by, or in any way officially connected with Thunderbird™, or any of its subsidiaries or its affiliates.
 
-The name Thunderbird® as well as related names, marks, emblems and images are registered trademarks of their respective owners.
+The official Thunderbird™ website can be found at https://www.thunderbird.net/en-US/.
+
+The name Thunderbird™ as well as related names, marks, emblems and images are registered trademarks of their respective owners.
 
 ## About
 
-Thunderbird portable app made with 🚀 [Portapps](https://portapps.io).<br />
+Thunderbird™ portable app made with 🚀 [Portapps](https://portapps.io).<br />
 Documentation and downloads can be found on https://portapps.io/app/thunderbird-portable/
 
 ## How can I help ?
