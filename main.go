@@ -4,12 +4,17 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
+	"net/url"
 	"os"
 	"os/exec"
+	"path"
 	"strconv"
 	"strings"
 	"text/template"
 
+	"github.com/Jeffail/gabs"
+	"github.com/pkg/errors"
 	. "github.com/portapps/portapps"
 	"github.com/portapps/portapps/pkg/dialog"
 	"github.com/portapps/portapps/pkg/mutex"
@@ -52,11 +57,12 @@ func init() {
 func main() {
 	var err error
 	utl.CreateFolder(app.DataPath)
+	profileFolder := utl.CreateFolder(app.DataPath, "profile", "default")
 
 	app.Process = utl.PathJoin(app.AppPath, "thunderbird.exe")
 	app.Args = []string{
 		"--profile",
-		utl.CreateFolder(app.DataPath, "profile", "default"),
+		profileFolder,
 	}
 
 	// Locale
@@ -164,6 +170,11 @@ pref("extensions.enigmail.agentPath", "{{ .GnuPgAgentPath }}");
 		Log.Fatal().Err(err).Msg("Cannot write portapps.cfg")
 	}
 
+	// Fix extensions path
+	if err := updateAddonStartup(profileFolder); err != nil {
+		Log.Error().Err(err).Msg("Cannot fix extensions path")
+	}
+
 	// Set env vars
 	crashreporterFolder := utl.CreateFolder(app.DataPath, "crashreporter")
 	pluginsFolder := utl.CreateFolder(app.DataPath, "plugins")
@@ -219,4 +230,58 @@ func checkLocale() (string, error) {
 	}
 
 	return cfg.Locale, nil
+}
+
+func updateAddonStartup(profileFolder string) error {
+	asLz4 := path.Join(profileFolder, "addonStartup.json.lz4")
+	if !utl.Exists(asLz4) {
+		return nil
+	}
+
+	decAsLz4, err := mozLz4Decompress(asLz4)
+	if err != nil {
+		return err
+	}
+
+	jsonAs, err := gabs.ParseJSON(decAsLz4)
+	if err != nil {
+		return err
+	}
+
+	if err := updateAddons("app-global", utl.PathJoin(profileFolder, "extensions"), jsonAs); err != nil {
+		return err
+	}
+	if err := updateAddons("app-profile", utl.PathJoin(profileFolder, "extensions"), jsonAs); err != nil {
+		return err
+	}
+	if err := updateAddons("app-system-defaults", utl.PathJoin(app.AppPath, "browser", "features"), jsonAs); err != nil {
+		return err
+	}
+	Log.Debug().Msgf("Updated addonStartup.json: %s", jsonAs.String())
+
+	encAsLz4, err := mozLz4Compress(jsonAs.Bytes())
+	if err != nil {
+		return err
+	}
+
+	return ioutil.WriteFile(asLz4, encAsLz4, 0644)
+}
+
+func updateAddons(field string, basePath string, container *gabs.Container) error {
+	if _, ok := container.Search(field, "path").Data().(string); !ok {
+		return nil
+	}
+	if _, err := container.Set(basePath, field, "path"); err != nil {
+		return errors.Wrap(err, fmt.Sprintf("couldn't set %s.path", field))
+	}
+
+	addons, _ := container.S(field, "addons").ChildrenMap()
+	for key, addon := range addons {
+		_, err := addon.Set(fmt.Sprintf("jar:file:///%s/%s.xpi!/", utl.FormatUnixPath(basePath), url.PathEscape(key)), "rootURI")
+		if err != nil {
+			return errors.Wrap(err, fmt.Sprintf("couldn't set %s %s.rootURI", field, key))
+		}
+	}
+
+	return nil
 }
