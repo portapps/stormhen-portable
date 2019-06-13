@@ -35,7 +35,7 @@
 
     <echo message="Downloading GnuPG..."/>
     <property name="gnupg.file" location="${tmp.path}\gnupg-setup.exe"/>
-    <get dest="${gnupg.file}" src="${papp.gnupg.url}" skipexisting="false"/>
+    <get dest="${gnupg.file}" src="${papp.gnupg.url}" skipexisting="false" verbose="on"/>
 
     <echo message="Extracting GnuPG..."/>
     <sevenzip-x src="${gnupg.file}" dest="${extract.path}\gnupg"/>
