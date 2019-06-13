@@ -1,5 +1,9 @@
 # Changelog
 
+## 60.7.1-5 (2019/06/13)
+
+* Thunderbird 60.7.1
+
 ## 60.7.0-4 (2019/06/06)
 
 * Extensions break on path change (Issue portapps/firefox-portable#2)
