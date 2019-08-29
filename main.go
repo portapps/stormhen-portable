@@ -3,6 +3,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/url"
@@ -26,6 +27,12 @@ type config struct {
 	DisableTelemetry  bool   `yaml:"disable_telemetry" mapstructure:"disable_telemetry"`
 	GnuPGAgentPath    string `yaml:"gnupg_agent_path" mapstructure:"gnupg_agent_path"`
 	Locale            string `yaml:"locale" mapstructure:"locale"`
+}
+
+type policies struct {
+	DisableAppUpdate        bool `json:"DisableAppUpdate"`
+	DisableTelemetry        bool `json:"DisableTelemetry"`
+	DontCheckDefaultBrowser bool `json:"DontCheckDefaultBrowser"`
 }
 
 var (
@@ -91,6 +98,25 @@ func main() {
 	if cfg.MultipleInstances {
 		Log.Info().Msg("Multiple instances enabled")
 		app.Args = append(app.Args, "--no-remote")
+	}
+
+	// Policies
+	distributionFolder := utl.CreateFolder(app.AppPath, "distribution")
+	policies := struct {
+		policies `json:"policies"`
+	}{
+		policies{
+			DisableAppUpdate:        true,
+			DisableTelemetry:        cfg.DisableTelemetry,
+			DontCheckDefaultBrowser: true,
+		},
+	}
+	rawPolicies, err := json.MarshalIndent(policies, "", "  ")
+	if err != nil {
+		Log.Fatal().Msg("Cannot marshal policies")
+	}
+	if err = ioutil.WriteFile(utl.PathJoin(distributionFolder, "policies.json"), rawPolicies, 0644); err != nil {
+		Log.Fatal().Msg("Cannot write policies")
 	}
 
 	// Autoconfig
@@ -211,7 +237,7 @@ pref("extensions.enigmail.agentPath", "{{ .GnuPgAgentPath }}");
 func checkLocale() (string, error) {
 	extSourceFile := fmt.Sprintf("%s.xpi", cfg.Locale)
 	extDestFile := fmt.Sprintf("langpack-%s@thunderbird.mozilla.org.xpi", cfg.Locale)
-	extsFolder := utl.CreateFolder(app.AppPath, "extensions")
+	extsFolder := utl.CreateFolder(app.AppPath, "distribution", "extensions")
 	localeXpi := utl.PathJoin(app.AppPath, "langs", extSourceFile)
 
 	// If default locale skip (already embedded)
