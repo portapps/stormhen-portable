@@ -1,5 +1,17 @@
 # Changelog
 
+## 68.1.0-12 (2019/09/11)
+
+* Thunderbird 68.1.0
+* Fix addons disabled on startup (Issue #2)
+* Portapps 1.26.1
+
+## 60.9.0-11 (2019/09/11)
+
+* Thunderbird 60.9.0
+* Fix addons disabled on startup (Issue #2)
+* Portapps 1.26.1
+
 ## 68.0-8 (2019/08/29)
 
 * Thunderbird 68.0
