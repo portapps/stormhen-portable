@@ -1,6 +1,6 @@
 # Changelog
 
-## 60.9.0-9 (2019/09/11)
+## 60.9.0-11 (2019/09/11)
 
 * Thunderbird 60.9.0
 * Fix addons disabled on startup (Issue #2)
