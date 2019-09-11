@@ -1,5 +1,11 @@
 # Changelog
 
+## 60.9.0-9 (2019/09/11)
+
+* Thunderbird 60.9.0
+* Fix addons disabled on startup (Issue #2)
+* Portapps 1.26.1
+
 ## 60.8.0-7 (2019/07/09)
 
 * Thunderbird 60.8.0
