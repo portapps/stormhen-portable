@@ -1,5 +1,10 @@
 # Changelog
 
+## 68.1.2-14 (2019/10/11)
+
+* Thunderbird 68.1.2
+* Portapps 1.28.0
+
 ## 68.1.1-13 (2019/09/27)
 
 * Thunderbird 68.1.1
