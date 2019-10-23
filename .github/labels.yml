@@ -42,7 +42,7 @@
 - # help wanted
   name: ":pray: help wanted"
   color: "4caf50"
-  description: ""
+  description: "" 
 - # hold
   name: ":hand: hold"
   color: "24292f"
