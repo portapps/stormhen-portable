@@ -1,5 +1,10 @@
 # Changelog
 
+## 60.9.1-18 (2019/12/01)
+
+* Thunderbird 60.9.1
+* Portapps 1.30.1
+
 ## 60.9.0-11 (2019/09/11)
 
 * Thunderbird 60.9.0
