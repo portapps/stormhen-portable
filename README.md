@@ -10,18 +10,12 @@
   <a href="https://www.paypal.me/crazyws"><img src="https://img.shields.io/badge/donate-paypal-00457c.svg?logo=paypal&style=flat-square" alt="Donate Paypal"></a>
 </p>
 
-## Notice of Non-Affiliation and Disclaimer
-
-Portapps is not affiliated, associated, authorized, endorsed by, or in any way officially connected with Thunderbird™, or any of its subsidiaries or its affiliates.
-
-The official Thunderbird™ website can be found at https://www.thunderbird.net/en-US/.
-
-The name Thunderbird™ as well as related names, marks, emblems and images are registered trademarks of their respective owners.
-
 ## About
 
-Thunderbird™ portable app made with 🚀 [Portapps](https://portapps.io).<br />
-Documentation and downloads can be found on https://portapps.io/app/thunderbird-portable/
+Stormhen (based on Mozilla Thunderbird) portable app made with 🚀 [Portapps](https://portapps.io).<br />
+Documentation and downloads can be found on https://portapps.io/app/stormhen-portable/
+
+> :warning: Following a trademark violation report ([#4](https://github.com/portapps/stormhen-portable/issues/4)) from Mozilla, Thunderbird portable has been named Stormhen portable on Portapps. Nothing changes except its name.
 
 ## How can I help ?
 
@@ -32,4 +26,5 @@ Thanks again for your support, it is much appreciated! :pray:
 ## License
 
 MIT. See `LICENSE` for more details.<br />
+Logo credit to [Nadja Hallfahrt](http://blog.artcore-illustrations.de/).<br />
 Rocket icon credit to [Squid Ink](http://thesquid.ink).

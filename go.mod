@@ -1,4 +1,4 @@
-module github.com/portapps/thunderbird-portable
+module github.com/portapps/stormhen-portable
 
 go 1.12
 
