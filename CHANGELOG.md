@@ -1,5 +1,13 @@
 # Changelog
 
+## 68.2.2-19 (2019/12/01)
+
+* Thunderbird 68.2.2
+
+## 60.9.1-18 (2019/12/01)
+
+* Thunderbird 60.9.1
+
 ## 68.2.1-17 (2019/12/01)
 
 * Following a trademark violation report (#4), name and logo have been changed
