@@ -49,7 +49,7 @@ func init() {
 	}
 
 	// Init app
-	if app, err = NewWithCfg("thunderbird-portable", "Thunderbird", cfg); err != nil {
+	if app, err = NewWithCfg("stormhen-portable", "Stormhen", cfg); err != nil {
 		Log.Fatal().Err(err).Msg("Cannot initialize application. See log file for more info.")
 	}
 }
