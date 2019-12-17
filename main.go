@@ -23,6 +23,7 @@ import (
 )
 
 type config struct {
+	Cleanup           bool   `yaml:"cleanup" mapstructure:"cleanup"`
 	MultipleInstances bool   `yaml:"multiple_instances" mapstructure:"multiple_instances"`
 	DisableTelemetry  bool   `yaml:"disable_telemetry" mapstructure:"disable_telemetry"`
 	GnuPGAgentPath    string `yaml:"gnupg_agent_path" mapstructure:"gnupg_agent_path"`
@@ -50,6 +51,7 @@ func init() {
 
 	// Default config
 	cfg = &config{
+		Cleanup:           false,
 		MultipleInstances: false,
 		DisableTelemetry:  false,
 		Locale:            defaultLocale,
@@ -70,6 +72,15 @@ func main() {
 	app.Args = []string{
 		"--profile",
 		profileFolder,
+	}
+
+	// Cleanup on exit
+	if cfg.Cleanup {
+		defer func() {
+			utl.Cleanup([]string{
+				path.Join(os.Getenv("APPDATA"), "Thunderbird"),
+			})
+		}()
 	}
 
 	// Locale
