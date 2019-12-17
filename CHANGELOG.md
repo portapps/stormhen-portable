@@ -1,5 +1,12 @@
 # Changelog
 
+## 68.3.1-21 (2019/12/17)
+
+* Thunderbird 68.3.1
+* GnuPG 2.2.19
+* Add `cleanup` config
+* Portapps 1.31.0
+
 ## 68.3.0-20 (2019/12/05)
 
 * Thunderbird 68.3.0
