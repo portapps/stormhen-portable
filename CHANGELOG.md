@@ -1,5 +1,10 @@
 # Changelog
 
+## 68.7.0-26 (2020/04/13)
+
+* Thunderbird 68.7.0
+* Portapps 2.1.2
+
 ## 68.6.0-25 (2020/03/16)
 
 * Thunderbird 68.6.0
