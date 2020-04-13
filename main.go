@@ -16,10 +16,11 @@ import (
 
 	"github.com/Jeffail/gabs"
 	"github.com/pkg/errors"
-	. "github.com/portapps/portapps"
-	"github.com/portapps/portapps/pkg/dialog"
-	"github.com/portapps/portapps/pkg/mutex"
-	"github.com/portapps/portapps/pkg/utl"
+	"github.com/portapps/portapps/v2"
+	"github.com/portapps/portapps/v2/pkg/dialog"
+	"github.com/portapps/portapps/v2/pkg/log"
+	"github.com/portapps/portapps/v2/pkg/mutex"
+	"github.com/portapps/portapps/v2/pkg/utl"
 )
 
 type config struct {
@@ -37,7 +38,7 @@ type policies struct {
 }
 
 var (
-	app *App
+	app *portapps.App
 	cfg *config
 )
 
@@ -58,8 +59,8 @@ func init() {
 	}
 
 	// Init app
-	if app, err = NewWithCfg("stormhen-portable", "Stormhen", cfg); err != nil {
-		Log.Fatal().Err(err).Msg("Cannot initialize application. See log file for more info.")
+	if app, err = portapps.NewWithCfg("stormhen-portable", "Stormhen", cfg); err != nil {
+		log.Fatal().Err(err).Msg("Cannot initialize application. See log file for more info.")
 	}
 }
 
@@ -86,20 +87,20 @@ func main() {
 	// Locale
 	locale, err := checkLocale()
 	if err != nil {
-		Log.Error().Err(err).Msg("Cannot set locale")
+		log.Error().Err(err).Msg("Cannot set locale")
 	}
 
 	// GnuPG agent
 	var gnupgAgentPath string
-	Log.Info().Msg("Seeking GnuPG Agent path...")
+	log.Info().Msg("Seeking GnuPG Agent path...")
 	if cfg.GnuPGAgentPath != "" {
 		gnupgAgentPath = cfg.GnuPGAgentPath
-		Log.Info().Msgf("Getting GnuPG Agent from YAML cfg: %s", gnupgAgentPath)
+		log.Info().Msgf("Getting GnuPG Agent from YAML cfg: %s", gnupgAgentPath)
 	} else if gnupgAgentPath, err = exec.LookPath("gpg.exe"); err == nil {
-		Log.Info().Msgf("Getting GnuPG Agent from PATH: %s", gnupgAgentPath)
+		log.Info().Msgf("Getting GnuPG Agent from PATH: %s", gnupgAgentPath)
 	} else {
 		gnupgAgentPath = utl.PathJoin(app.RootPath, embeddedGnupgAgentPath)
-		Log.Info().Msgf("Getting embedded GnuPG Agent: %s", gnupgAgentPath)
+		log.Info().Msgf("Getting embedded GnuPG Agent: %s", gnupgAgentPath)
 	}
 	if gnupgAgentPath != "" {
 		gnupgAgentPath = strings.Replace(strings.Replace(gnupgAgentPath, `/`, `\`, -1), `\`, `\\`, -1)
@@ -107,7 +108,7 @@ func main() {
 
 	// Multiple instances
 	if cfg.MultipleInstances {
-		Log.Info().Msg("Multiple instances enabled")
+		log.Info().Msg("Multiple instances enabled")
 		app.Args = append(app.Args, "--no-remote")
 	}
 
@@ -124,10 +125,10 @@ func main() {
 	}
 	rawPolicies, err := json.MarshalIndent(policies, "", "  ")
 	if err != nil {
-		Log.Fatal().Msg("Cannot marshal policies")
+		log.Fatal().Msg("Cannot marshal policies")
 	}
 	if err = ioutil.WriteFile(utl.PathJoin(distributionFolder, "policies.json"), rawPolicies, 0644); err != nil {
-		Log.Fatal().Msg("Cannot write policies")
+		log.Fatal().Msg("Cannot write policies")
 	}
 
 	// Autoconfig
@@ -136,14 +137,14 @@ func main() {
 	if err := utl.CreateFile(autoconfig, `//
 pref("general.config.filename", "portapps.cfg");
 pref("general.config.obscure_value", 0);`); err != nil {
-		Log.Fatal().Err(err).Msg("Cannot write autoconfig.js")
+		log.Fatal().Err(err).Msg("Cannot write autoconfig.js")
 	}
 
 	// Mozilla cfg
 	mozillaCfgPath := utl.PathJoin(app.AppPath, "portapps.cfg")
 	mozillaCfgFile, err := os.Create(mozillaCfgPath)
 	if err != nil {
-		Log.Fatal().Err(err).Msg("Cannot create portapps.cfg")
+		log.Fatal().Err(err).Msg("Cannot create portapps.cfg")
 	}
 	mozillaCfgData := struct {
 		Telemetry      string
@@ -204,12 +205,12 @@ lockPref("toolkit.crashreporter.enabled", false);
 pref("extensions.enigmail.agentPath", "{{ .GnuPgAgentPath }}");
 `))
 	if err := mozillaCfgTpl.Execute(mozillaCfgFile, mozillaCfgData); err != nil {
-		Log.Fatal().Err(err).Msg("Cannot write portapps.cfg")
+		log.Fatal().Err(err).Msg("Cannot write portapps.cfg")
 	}
 
 	// Fix extensions path
 	if err := updateAddonStartup(profileFolder); err != nil {
-		Log.Error().Err(err).Msg("Cannot fix extensions path")
+		log.Error().Err(err).Msg("Cannot fix extensions path")
 	}
 
 	// Set env vars
@@ -229,16 +230,16 @@ pref("extensions.enigmail.agentPath", "{{ .GnuPgAgentPath }}");
 	defer mu.Release()
 	if err != nil {
 		if !cfg.MultipleInstances {
-			Log.Error().Msg("You have to enable multiple instances in your configuration if you want to launch another instance")
+			log.Error().Msg("You have to enable multiple instances in your configuration if you want to launch another instance")
 			if _, err = dialog.MsgBox(
 				fmt.Sprintf("%s portable", app.Name),
 				"Other instance detected. You have to enable multiple instances in your configuration if you want to launch another instance.",
 				dialog.MsgBoxBtnOk|dialog.MsgBoxIconError); err != nil {
-				Log.Error().Err(err).Msg("Cannot create dialog box")
+				log.Error().Err(err).Msg("Cannot create dialog box")
 			}
 			return
 		} else {
-			Log.Warn().Msg("Another instance is already running")
+			log.Warn().Msg("Another instance is already running")
 		}
 	}
 
@@ -294,7 +295,7 @@ func updateAddonStartup(profileFolder string) error {
 	if err := updateAddons("app-system-defaults", utl.PathJoin(app.AppPath, "browser", "features"), jsonAs); err != nil {
 		return err
 	}
-	Log.Debug().Msgf("Updated addonStartup.json: %s", jsonAs.String())
+	log.Debug().Msgf("Updated addonStartup.json: %s", jsonAs.String())
 
 	encAsLz4, err := mozLz4Compress(jsonAs.Bytes())
 	if err != nil {
