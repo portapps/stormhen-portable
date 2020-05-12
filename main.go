@@ -3,7 +3,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/url"
@@ -29,12 +28,6 @@ type config struct {
 	DisableTelemetry  bool   `yaml:"disable_telemetry" mapstructure:"disable_telemetry"`
 	GnuPGAgentPath    string `yaml:"gnupg_agent_path" mapstructure:"gnupg_agent_path"`
 	Locale            string `yaml:"locale" mapstructure:"locale"`
-}
-
-type policies struct {
-	DisableAppUpdate        bool `json:"DisableAppUpdate"`
-	DisableTelemetry        bool `json:"DisableTelemetry"`
-	DontCheckDefaultBrowser bool `json:"DontCheckDefaultBrowser"`
 }
 
 var (
@@ -113,22 +106,8 @@ func main() {
 	}
 
 	// Policies
-	distributionFolder := utl.CreateFolder(app.AppPath, "distribution")
-	policies := struct {
-		policies `json:"policies"`
-	}{
-		policies{
-			DisableAppUpdate:        true,
-			DisableTelemetry:        cfg.DisableTelemetry,
-			DontCheckDefaultBrowser: true,
-		},
-	}
-	rawPolicies, err := json.MarshalIndent(policies, "", "  ")
-	if err != nil {
-		log.Fatal().Msg("Cannot marshal policies")
-	}
-	if err = ioutil.WriteFile(utl.PathJoin(distributionFolder, "policies.json"), rawPolicies, 0644); err != nil {
-		log.Fatal().Msg("Cannot write policies")
+	if err := createPolicies(); err != nil {
+		log.Fatal().Err(err).Msg("Cannot create policies")
 	}
 
 	// Autoconfig
@@ -268,6 +247,49 @@ func checkLocale() (string, error) {
 	}
 
 	return cfg.Locale, nil
+}
+
+func createPolicies() error {
+	appFile := utl.PathJoin(utl.CreateFolder(app.AppPath, "distribution"), "policies.json")
+	dataFile := utl.PathJoin(app.DataPath, "policies.json")
+	defaultPolicies := struct {
+		Policies map[string]interface{} `json:"policies"`
+	}{
+		Policies: map[string]interface{}{
+			"DisableAppUpdate":        true,
+			"DontCheckDefaultBrowser": true,
+		},
+	}
+
+	jsonPolicies, err := gabs.Consume(defaultPolicies)
+	if err != nil {
+		return errors.Wrap(err, "Cannot consume default policies")
+	}
+	log.Debug().Msgf("Default policies: %s", jsonPolicies.String())
+
+	if utl.Exists(dataFile) {
+		rawCustomPolicies, err := ioutil.ReadFile(dataFile)
+		if err != nil {
+			return errors.Wrap(err, "Cannot read custom policies")
+		}
+
+		jsonPolicies, err = gabs.ParseJSON(rawCustomPolicies)
+		if err != nil {
+			return errors.Wrap(err, "Cannot consume custom policies")
+		}
+		log.Debug().Msgf("Custom policies: %s", jsonPolicies.String())
+
+		jsonPolicies.Set(true, "policies", "DisableAppUpdate")
+		jsonPolicies.Set(true, "policies", "DontCheckDefaultBrowser")
+	}
+
+	log.Debug().Msgf("Applied policies: %s", jsonPolicies.String())
+	err = ioutil.WriteFile(appFile, []byte(jsonPolicies.StringIndent("", "  ")), 0644)
+	if err != nil {
+		return errors.Wrap(err, "Cannot write policies")
+	}
+
+	return nil
 }
 
 func updateAddonStartup(profileFolder string) error {
