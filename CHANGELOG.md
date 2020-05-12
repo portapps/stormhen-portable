@@ -1,5 +1,11 @@
 # Changelog
 
+## 68.8.0-27 (2020/05/12)
+
+* Thunderbird 68.8.0
+* Allow custom `policies.json`
+* Portapps 2.2.4
+
 ## 68.7.0-26 (2020/04/13)
 
 * Thunderbird 68.7.0
