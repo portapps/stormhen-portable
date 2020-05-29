@@ -1,5 +1,10 @@
 # Changelog
 
+## 68.8.0-28 (2020/05/29)
+
+* Fix addons startup (portapps/phyrox-portable#3) 
+* Portapps 2.4.4
+
 ## 68.8.0-27 (2020/05/12)
 
 * Thunderbird 68.8.0
@@ -72,13 +77,13 @@
 ## 68.1.0-12 (2019/09/11)
 
 * Thunderbird 68.1.0
-* Fix addons disabled on startup (Issue #2)
+* Fix addons disabled on startup (#2)
 * Portapps 1.26.1
 
 ## 60.9.0-11 (2019/09/11)
 
 * Thunderbird 60.9.0
-* Fix addons disabled on startup (Issue #2)
+* Fix addons disabled on startup (#2)
 * Portapps 1.26.1
 
 ## 68.0-8 (2019/08/29)
@@ -101,7 +106,7 @@
 
 ## 60.7.0-4 (2019/06/06)
 
-* Extensions break on path change (Issue portapps/firefox-portable#2)
+* Extensions break on path change (portapps/firefox-portable#2)
 
 ## 60.7.0-3 (2019/05/18)
 
