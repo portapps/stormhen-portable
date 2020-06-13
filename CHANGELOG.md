@@ -1,5 +1,9 @@
 # Changelog
 
+## 68.9.0-29 (2020/06/13)
+
+* Thunderbird 68.9.0
+
 ## 68.8.0-28 (2020/05/29)
 
 * Fix addons startup (portapps/phyrox-portable#3) 
