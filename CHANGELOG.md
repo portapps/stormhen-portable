@@ -1,5 +1,10 @@
 # Changelog
 
+## 78.1.1-33 (2020/08/11)
+
+* Thunderbird 78.1.1
+* Portapps 2.5.0
+
 ## 78.0.1-32 (2020/07/28)
 
 * Thunderbird 78.0.1
