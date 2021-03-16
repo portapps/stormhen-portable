@@ -1,5 +1,12 @@
 # Changelog
 
+## 78.8.1-40 (2021/03/16)
+
+* Thunderbird 78.8.1
+* Portapps 3.3.0
+* GnuPG 2.2.27
+* No more win32 release
+
 ## 78.6.0-39 (2021/01/10)
 
 * Thunderbird 78.6.0
