@@ -1,5 +1,11 @@
 # Changelog
 
+## 91.7.0-43 (2022/04/09)
+
+* Thunderbird 91.7.0
+* Portapps 3.5.0
+* Bump github.com/pierrec/lz4/v3 from 3.3.2 to 3.3.4 (#46)
+
 ## 91.1.1-42 (2021/09/19)
 
 * Thunderbird 91.1.1
