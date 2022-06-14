@@ -3,7 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/binary"
-	"io/ioutil"
+	"io"
 	"os"
 
 	"github.com/pierrec/lz4/v3"
@@ -35,7 +35,7 @@ func mozLz4Decompress(filename string) ([]byte, error) {
 		return nil, errors.Wrap(err, "couldn't read size")
 	}
 
-	src, err := ioutil.ReadAll(file)
+	src, err := io.ReadAll(file)
 	if err != nil {
 		return nil, errors.Wrap(err, "couldn't read compressed data")
 	}
