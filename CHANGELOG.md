@@ -1,5 +1,11 @@
 # Changelog
 
+## 115.6.0-44 (2023/12/25)
+
+* Thunderbird 115.6.0
+* Portapps 3.9.0
+* GnuPG 2.4.3
+
 ## 91.7.0-43 (2022/04/09)
 
 * Thunderbird 91.7.0
