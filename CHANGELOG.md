@@ -1,5 +1,11 @@
 # Changelog
 
+## 137.0.1-45 (2025/04/12)
+
+* Thunderbird 137.0.1
+* Portapps 3.16.0
+* GnuPG 2.4.7
+
 ## 115.6.0-44 (2023/12/25)
 
 * Thunderbird 115.6.0
