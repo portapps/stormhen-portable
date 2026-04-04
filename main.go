@@ -1,5 +1,4 @@
 //go:generate go install -v github.com/josephspurrier/goversioninfo/cmd/goversioninfo
-//go:generate goversioninfo -icon=res/papp.ico -manifest=res/papp.manifest
 package main
 
 import (
@@ -7,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"path"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"text/template"
@@ -60,7 +60,7 @@ func main() {
 	utl.CreateFolder(app.DataPath)
 	profileFolder := utl.CreateFolder(app.DataPath, "profile", "default")
 
-	app.Process = utl.PathJoin(app.AppPath, "thunderbird.exe")
+	app.Process = filepath.Join(app.AppPath, "thunderbird.exe")
 	app.Args = []string{
 		"--profile",
 		profileFolder,
@@ -120,7 +120,7 @@ func main() {
 	} else if gnupgAgentPath, err = exec.LookPath("gpg.exe"); err == nil {
 		log.Info().Msgf("Getting GnuPG Agent from PATH: %s", gnupgAgentPath)
 	} else {
-		gnupgAgentPath = utl.PathJoin(app.RootPath, embeddedGnupgAgentPath)
+		gnupgAgentPath = filepath.Join(app.RootPath, embeddedGnupgAgentPath)
 		log.Info().Msgf("Getting embedded GnuPG Agent: %s", gnupgAgentPath)
 	}
 	if gnupgAgentPath != "" {
@@ -140,7 +140,7 @@ func main() {
 
 	// Autoconfig
 	prefFolder := utl.CreateFolder(app.AppPath, "defaults/pref")
-	autoconfig := utl.PathJoin(prefFolder, "autoconfig.js")
+	autoconfig := filepath.Join(prefFolder, "autoconfig.js")
 	if err := utl.CreateFile(autoconfig, `//
 pref("general.config.filename", "portapps.cfg");
 pref("general.config.obscure_value", 0);`); err != nil {
@@ -148,7 +148,7 @@ pref("general.config.obscure_value", 0);`); err != nil {
 	}
 
 	// Mozilla cfg
-	mozillaCfgPath := utl.PathJoin(app.AppPath, "portapps.cfg")
+	mozillaCfgPath := filepath.Join(app.AppPath, "portapps.cfg")
 	mozillaCfgFile, err := os.Create(mozillaCfgPath)
 	if err != nil {
 		log.Fatal().Err(err).Msg("Cannot create portapps.cfg")
@@ -228,7 +228,7 @@ func checkLocale() (string, error) {
 	extSourceFile := fmt.Sprintf("%s.xpi", cfg.Locale)
 	extDestFile := fmt.Sprintf("langpack-%s@thunderbird.mozilla.org.xpi", cfg.Locale)
 	extsFolder := utl.CreateFolder(app.AppPath, "distribution", "extensions")
-	localeXpi := utl.PathJoin(app.AppPath, "langs", extSourceFile)
+	localeXpi := filepath.Join(app.AppPath, "langs", extSourceFile)
 
 	// If default locale skip (already embedded)
 	if cfg.Locale == defaultLocale {
@@ -241,7 +241,7 @@ func checkLocale() (string, error) {
 	}
 
 	// Copy .xpi
-	if err := utl.CopyFile(localeXpi, utl.PathJoin(extsFolder, extDestFile)); err != nil {
+	if err := utl.CopyFile(localeXpi, filepath.Join(extsFolder, extDestFile)); err != nil {
 		return defaultLocale, err
 	}
 
@@ -249,8 +249,8 @@ func checkLocale() (string, error) {
 }
 
 func createPolicies() error {
-	appFile := utl.PathJoin(utl.CreateFolder(app.AppPath, "distribution"), "policies.json")
-	dataFile := utl.PathJoin(app.DataPath, "policies.json")
+	appFile := filepath.Join(utl.CreateFolder(app.AppPath, "distribution"), "policies.json")
+	dataFile := filepath.Join(app.DataPath, "policies.json")
 	defaultPolicies := struct {
 		Policies map[string]interface{} `json:"policies"`
 	}{
