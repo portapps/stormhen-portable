@@ -33,16 +33,6 @@
       <fileset dir="${tmp.path}\extract2" defaultexcludes="no"/>
     </move>
 
-    <echo message="Downloading GnuPG..."/>
-    <property name="gnupg.file" location="${tmp.path}\gnupg-setup.exe"/>
-    <get dest="${gnupg.file}" src="${papp.gnupg.url}" skipexisting="false" verbose="on"/>
-
-    <echo message="Extracting GnuPG..."/>
-    <sevenzip-x src="${gnupg.file}" dest="${extract.path}\gnupg"/>
-    <delete dir="${extract.path}\gnupg\$PLUGINSDIR"/>
-    <delete file="${extract.path}\gnupg\gnupg-uninstall.exe.nsis"/>
-    <assertfile file="${extract.path}\gnupg\bin\gpg.exe"/>
-
     <echo message="Downloading additional languages..."/>
     <property name="papp.languages.path" location="${extract.path}\langs"/>
     <mkdir dir="${papp.languages.path}"/>
