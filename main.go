@@ -102,9 +102,17 @@ func main() {
 	// Cleanup on exit
 	if cfg.Cleanup {
 		defer func() {
-			utl.Cleanup([]string{
-				filepath.Join(os.Getenv("APPDATA"), "Thunderbird"),
-			})
+			var paths []string
+			if appData := os.Getenv("APPDATA"); appData != "" {
+				paths = append(paths, filepath.Join(appData, "Thunderbird"))
+			}
+			if localAppData := os.Getenv("LOCALAPPDATA"); localAppData != "" {
+				paths = append(paths, filepath.Join(localAppData, "Thunderbird"))
+			}
+			if userProfile := os.Getenv("USERPROFILE"); userProfile != "" {
+				paths = append(paths, filepath.Join(userProfile, "AppData", "LocalLow", "Thunderbird"))
+			}
+			utl.Cleanup(paths)
 		}()
 	}
 
