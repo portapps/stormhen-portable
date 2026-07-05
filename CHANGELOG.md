@@ -1,5 +1,10 @@
 # Changelog
 
+## 152.0.1-47 (2026/07/05)
+
+* Thunderbird 152.0.1
+* Modernize policies and external GnuPG configuration
+
 ## 150.0.2-46 (2026/05/11)
 
 * Thunderbird 150.0.2
