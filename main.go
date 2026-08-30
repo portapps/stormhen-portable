@@ -12,9 +12,9 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/portapps/portapps/v3"
+	"github.com/portapps/portapps/v3/pkg/files"
 	"github.com/portapps/portapps/v3/pkg/log"
 	"github.com/portapps/portapps/v3/pkg/mutex"
-	"github.com/portapps/portapps/v3/pkg/utl"
 	"github.com/portapps/portapps/v3/pkg/win"
 )
 
@@ -55,8 +55,13 @@ func init() {
 
 func main() {
 	var err error
-	utl.CreateFolder(app.DataPath)
-	profileFolder := utl.CreateFolder(app.DataPath, "profile", "default")
+	if err := os.MkdirAll(app.DataPath, os.ModePerm); err != nil {
+		log.Fatal().Err(err).Msg("Cannot create data directory.")
+	}
+	profileFolder := filepath.Join(app.DataPath, "profile", "default")
+	if err := os.MkdirAll(profileFolder, os.ModePerm); err != nil {
+		log.Fatal().Err(err).Msg("Cannot create profile directory.")
+	}
 
 	app.Process = filepath.Join(app.AppPath, "thunderbird.exe")
 	app.Args = []string{
@@ -65,8 +70,14 @@ func main() {
 	}
 
 	// Set env vars
-	crashreporterFolder := utl.CreateFolder(app.DataPath, "crashreporter")
-	pluginsFolder := utl.CreateFolder(app.DataPath, "plugins")
+	crashreporterFolder := filepath.Join(app.DataPath, "crashreporter")
+	if err := os.MkdirAll(crashreporterFolder, os.ModePerm); err != nil {
+		log.Fatal().Err(err).Msg("Cannot create crash reporter directory.")
+	}
+	pluginsFolder := filepath.Join(app.DataPath, "plugins")
+	if err := os.MkdirAll(pluginsFolder, os.ModePerm); err != nil {
+		log.Fatal().Err(err).Msg("Cannot create plugins directory.")
+	}
 	os.Setenv("MOZ_CRASHREPORTER_DATA_DIRECTORY", crashreporterFolder)
 	os.Setenv("MOZ_MAINTENANCE_SERVICE", "0")
 	os.Setenv("MOZ_PLUGIN_PATH", pluginsFolder)
@@ -112,7 +123,7 @@ func main() {
 			if userProfile := os.Getenv("USERPROFILE"); userProfile != "" {
 				paths = append(paths, filepath.Join(userProfile, "AppData", "LocalLow", "Thunderbird"))
 			}
-			utl.Cleanup(paths)
+			files.Cleanup(paths...)
 		}()
 	}
 
@@ -144,11 +155,14 @@ func main() {
 	}
 
 	// Autoconfig
-	prefFolder := utl.CreateFolder(app.AppPath, "defaults/pref")
+	prefFolder := filepath.Join(app.AppPath, "defaults", "pref")
+	if err := os.MkdirAll(prefFolder, os.ModePerm); err != nil {
+		log.Fatal().Err(err).Msg("Cannot create preferences directory.")
+	}
 	autoconfig := filepath.Join(prefFolder, "autoconfig.js")
-	if err := utl.CreateFile(autoconfig, `//
+	if err := os.WriteFile(autoconfig, []byte(`//
 pref("general.config.filename", "portapps.cfg");
-pref("general.config.obscure_value", 0);`); err != nil {
+pref("general.config.obscure_value", 0);`), 0644); err != nil {
 		log.Fatal().Err(err).Msg("Cannot write autoconfig.js")
 	}
 
@@ -210,7 +224,10 @@ lockPref("toolkit.crashreporter.enabled", false);
 func checkLocale() (string, error) {
 	extSourceFile := fmt.Sprintf("%s.xpi", cfg.Locale)
 	extDestFile := fmt.Sprintf("langpack-%s@thunderbird.mozilla.org.xpi", cfg.Locale)
-	extsFolder := utl.CreateFolder(app.AppPath, "distribution", "extensions")
+	extsFolder := filepath.Join(app.AppPath, "distribution", "extensions")
+	if err := os.MkdirAll(extsFolder, os.ModePerm); err != nil {
+		return defaultLocale, err
+	}
 	localeXpi := filepath.Join(app.AppPath, "langs", extSourceFile)
 
 	// If default locale skip (already embedded)
@@ -219,12 +236,12 @@ func checkLocale() (string, error) {
 	}
 
 	// Check .xpi file exists
-	if !utl.Exists(localeXpi) {
+	if _, err := os.Stat(localeXpi); os.IsNotExist(err) {
 		return defaultLocale, fmt.Errorf("XPI file does not exist in %s", localeXpi)
 	}
 
 	// Copy .xpi
-	if err := utl.CopyFile(localeXpi, filepath.Join(extsFolder, extDestFile)); err != nil {
+	if err := files.CopyFile(localeXpi, filepath.Join(extsFolder, extDestFile)); err != nil {
 		return defaultLocale, err
 	}
 
@@ -232,7 +249,11 @@ func checkLocale() (string, error) {
 }
 
 func createPolicies(locale string) error {
-	appFile := filepath.Join(utl.CreateFolder(app.AppPath, "distribution"), "policies.json")
+	distributionFolder := filepath.Join(app.AppPath, "distribution")
+	if err := os.MkdirAll(distributionFolder, os.ModePerm); err != nil {
+		return errors.Wrap(err, "Cannot create distribution folder")
+	}
+	appFile := filepath.Join(distributionFolder, "policies.json")
 	dataFile := filepath.Join(app.DataPath, "policies.json")
 	jsonPolicies := map[string]interface{}{
 		"policies": map[string]interface{}{},
@@ -243,7 +264,7 @@ func createPolicies(locale string) error {
 	}
 	log.Debug().Msgf("Default policies: %s", string(defaultPolicies))
 
-	if utl.Exists(dataFile) {
+	if _, err := os.Stat(dataFile); err == nil {
 		rawCustomPolicies, err := os.ReadFile(dataFile)
 		if err != nil {
 			return errors.Wrap(err, "Cannot read custom policies")
@@ -341,7 +362,7 @@ func createPolicies(locale string) error {
 
 func updateAddonStartup(profileFolder string) error {
 	lz4File := filepath.Join(profileFolder, "addonStartup.json.lz4")
-	if !utl.Exists(lz4File) || app.Prev.RootPath == "" {
+	if _, err := os.Stat(lz4File); os.IsNotExist(err) || app.Prev.RootPath == "" {
 		return nil
 	}
 
@@ -350,12 +371,12 @@ func updateAddonStartup(profileFolder string) error {
 		return err
 	}
 
-	prevPathLin := strings.Replace(utl.FormatUnixPath(app.Prev.RootPath), ` `, `%20`, -1)
-	currPathLin := strings.Replace(utl.FormatUnixPath(app.RootPath), ` `, `%20`, -1)
+	prevPathLin := escapedUnixPath(app.Prev.RootPath)
+	currPathLin := escapedUnixPath(app.RootPath)
 	lz4Str := strings.Replace(string(lz4Raw), prevPathLin, currPathLin, -1)
 
-	prevPathWin := strings.Replace(strings.Replace(utl.FormatWindowsPath(app.Prev.RootPath), `\`, `\\`, -1), ` `, `%20`, -1)
-	currPathWin := strings.Replace(strings.Replace(utl.FormatWindowsPath(app.RootPath), `\`, `\\`, -1), ` `, `%20`, -1)
+	prevPathWin := escapedWindowsPath(app.Prev.RootPath)
+	currPathWin := escapedWindowsPath(app.RootPath)
 	lz4Str = strings.Replace(lz4Str, prevPathWin, currPathWin, -1)
 
 	lz4Enc, err := mozLz4Compress([]byte(lz4Str))
@@ -364,4 +385,12 @@ func updateAddonStartup(profileFolder string) error {
 	}
 
 	return os.WriteFile(lz4File, lz4Enc, 0644)
+}
+
+func escapedUnixPath(path string) string {
+	return strings.ReplaceAll(filepath.ToSlash(path), ` `, `%20`)
+}
+
+func escapedWindowsPath(path string) string {
+	return strings.ReplaceAll(strings.ReplaceAll(filepath.FromSlash(path), `\`, `\\`), ` `, `%20`)
 }
